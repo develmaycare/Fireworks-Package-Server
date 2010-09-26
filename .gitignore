@@ -1,0 +1,7 @@
+*.b
+*.pyc
+*.swp
+.backup
+data
+fixtures
+session.vim

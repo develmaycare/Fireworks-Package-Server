@@ -1,0 +1,25 @@
+# Fireworks Package Server #
+
+This is a package server created by the [Fireworks Project](http://www.fireworksproject.com/)
+that is to be fully compliant with the emerging CommonJS specification. See:
+
+(http://wiki.commonjs.org/wiki/Packages/1.0)
+(http://wiki.commonjs.org/wiki/Packages/Registry)
+
+## Choice of Django ##
+
+Django was selected at least as an initial starting point for both the ORM and 
+the ease of initializing an admin interface. Discussion has not yet started on 
+a final platform, though GAE has been mentioned.
+
+## Playing ##
+
+You can easily play with the system by taking the following steps:
+
+- Download the project from github and extract it somewhere you have python and 
+  django installed.
+- Change THIS_PATH in settings.py to your install.
+- Create the data directory: `mkdir data`.
+- Set it up with: `./manage.py syncdb`.
+- Run it with: `./manage.py runserver`.
+- Go to http://127.0.0.1/admin to test it out.
