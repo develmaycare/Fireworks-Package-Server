@@ -1,0 +1,1 @@
+{"error": "Not Acceptable", "reason": "Server does not supported the requested Accept type: {{accept_type}}"}

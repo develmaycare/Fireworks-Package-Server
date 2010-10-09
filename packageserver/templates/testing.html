@@ -1,0 +1,15 @@
+<h1>Test Page</h1>
+
+<hr />
+{{output}}
+<hr />
+
+<h2>Request META</h2>
+<table width="100%">
+    {% for k,v in request.META.items %}
+    <tr>
+        <th>{{k}}</th>
+        <td>{{v}}</td>
+    </tr>
+    {% endfor %}
+</table>

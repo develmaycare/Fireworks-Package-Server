@@ -18,4 +18,10 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
+
+    (r'^$','packageserver.views.index'),
+    (r'^(?P<package_name>[\w\-]+)/$','packageserver.views.package'),
+    (r'^(?P<package_name>[\w\-]+)/(?P<package_version>[\d\.]+)/$','packageserver.views.package'),
+
+    (r'^testing/','packageserver.views.testing'),
 )
