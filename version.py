@@ -1,2 +1,2 @@
 NAME = "rockford"
-NUMBER = "0.0.1"
+NUMBER = "0.2.0"

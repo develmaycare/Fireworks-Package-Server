@@ -3,33 +3,56 @@ JSON decorators.
 """
 
 # Imports #
-#import simplejson as json
+import simplejson as json
 from django.conf import settings as SETTINGS
 from django.http import HttpResponse
 from django.template import Context, loader
 
 from packageserver.models import Contact, Package, Repo
 
+# Supporting Functions #
+
+def package_to_dictionary(Object):
+    """Convert a Package object to a dictionary that may be used by simplejson.
+    Note that we can't just use Object.__dict__ because we need to be 
+    selective above what is in the output.
+    """
+    pass
+
+class JsonPackage(object):
+    """A collector for package data that will be serialized to a JSON string."""
+    pass
+
 # Decorators #
 
 def index(f):
-    """Return output for the given view function as JSON."""
+    """Return JSON output for the root URL registry."""
     def wrapper(request, *args, **kwargs):
 
         if 'application/json' <> request.META['HTTP_ACCEPT']:
             return f(request, *args, **kwargs)
 
-        j = '{'
+        packages = dict()
         for Pkg in Package.objects.all():
             if Pkg.is_local():
-                j += '"%s": %s"' %(Pkg.name,Pkg.to_commonjs())
+                j = dict()
+                for V in Pkg.versions.all():
+                    j[V.number] = dict()
+                    j[V.number]['name'] = Pkg.name
+                    j[V.number]['version'] = V.number
+                    j[V.number]['main'] = V.main
+                    j[V.number]['description'] = Pkg.description
+                    j[V.number]['dist'] = 'NOT IMPLEMENTED'
+                packages[Pkg.name] = j
             else:
-                j += '"%s": %s"' %(Pkg.name,Pkg.repositories.all()[0])
-            j += ','
-        j += '}' 
-        print j
+                packages[Pkg.name] = 'NOT IMPLEMENTED (external URL) should go here'
+        output = json.dumps(packages)
 
-        C = Context({'request': request,'output': j})
+        T = loader.get_template('index.json')
+        C = Context({'request':request,'output':output})
+        return HttpResponse(T.render(C),mimetype="text/html")
+
+        C = Context({'request': request,'output': output})
         
         if SETTINGS.DEBUG:
             T = loader.get_template('testing.txt')
@@ -79,4 +102,19 @@ def package(f):
             T = loader.get_template('package.json')
             return HttpResponse(T.render(C), mimetype="application/json")
 
+    return wrapper
+
+def testing(f):
+    """Display the testing/sandbox in JSON format."""
+
+    def wrapper(request, *args, **kwargs):
+        if 'application/json' <> request.META['HTTP_ACCEPT']:
+            return f(request, *args, **kwargs)
+
+        T = loader.get_template('testing.txt')
+        C = Context({
+            'request': request,
+            'output': 'This is a test.'
+        })
+        return HttpResponse(T.render(C),mimetype="text/html")
     return wrapper

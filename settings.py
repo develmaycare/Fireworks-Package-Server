@@ -1,6 +1,6 @@
 # Django settings for fwp project.
 
-THIS_PATH = '/var/domains/sandbox/django/fwp'
+THIS_PATH = '/opt/src/fwp/application'
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -66,7 +66,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
-ROOT_URLCONF = 'fwp.urls'
+ROOT_URLCONF = 'application.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -80,5 +80,5 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'fwp.packageserver',
+    'application.packageserver',
 )

@@ -81,14 +81,17 @@ def package(request,package_name,package_version=None):
 
     return unsupported_accept_type(request.META['HTTP_ACCEPT'])
 
-#@html.testing
-#@json.testing
+@html.testing
+@json.testing
 def testing(request):
     """A place to put quick tests."""
+    return unsupported_accept_type(request.META['HTTP_ACCEPT'])
 
     #return unsupported_accept_type(request.META['HTTP_ACCEPT'])
+    """
     context = {
         'request': request,
         'output': 'This is a test.'
     }
     return render_to_response('testing.html',context)
+    """

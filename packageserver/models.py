@@ -41,6 +41,21 @@ PACKAGE_RANKING_CHOICES = (
 
 # Models #
 
+class Category(models.Model):
+    """Categorization for packages."""
+    title = models.CharField(max_length=128,unique=True)
+    description = models.TextField(blank=True,null=True,help_text="Brief description of the category. Markdown is supported.")
+
+    class Meta:
+        verbose_name_plural = "Categories"
+
+    def __unicode__(self):
+        return self.title
+    
+    def total_packages(self):
+        """Return the total number of packages under this category."""
+        pass
+
 class Contact(models.Model):
     """A contact person related to a package (maintainer, contributor)."""
     first_name = models.CharField(max_length=128)
@@ -101,14 +116,136 @@ class Repo(models.Model):
         js += '}'
         return js
 
+class Package(models.Model):
+    """An individual package. This is patterned after the Common JS 
+    definition of packages. See: 
+    
+    http://wiki.commonjs.org/wiki/Packages/1.1
+    """
 
-class Package_Version(models.Model):
+    title = models.CharField(max_length=128,unique=True,help_text="Official title of the package.")
+    name = models.SlugField(max_length=128,unique=True,help_text='This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters.')
+    description = models.TextField(help_text="A brief description of the package.")
+    #versions = models.ManyToManyField(Package_Version)
+    author = models.ForeignKey(Contact,related_name="package_author",help_text="Original author of the package.")
+    added_by = models.ForeignKey(User,blank=True,null=True,related_name='package_added_by')
+    added_date = models.DateField(auto_now_add=True)
+    modified_date = models.DateField(auto_now=True)
+    modified_by = models.ForeignKey(User,blank=True,null=True,related_name='package_modified_by')
+    #versions = models.ManyToManyField(Package_Version)
+    categories = models.ManyToManyField(Category)
+
+    def __unicode__(self):
+        return self.name
+
+    def get_version_numbers(self):
+        """Get a list of version numbers."""
+        versions = list()
+        for V in self.versions.all():
+            versions.append(V.number)
+        print versions
+        return versions
+
+    def get_version_numbers_as_links(self):
+        """Get a list of version numbers as hyplinks."""
+        links = list()
+        for i in self.get_version_numbers():
+            links.append('<a href="%s/%s">%s</a>' %(self.name,i,i))
+        return links
+    get_version_numbers_as_links.allow_tags = True
+
+    def is_local(self):
+        """Determine whether the package is local to this registry."""
+        if os.path.exists('%s/data/packages/%s' %(SETTINGS.THIS_PATH,self.name)):
+            return True
+        return False
+
+    def to_commonjs(self):
+        """Convert the data to canonical Common JS JSON worthy of a package.json 
+        file. This is if we want to create a "true" package server that 
+        supports Common JS.
+        """
+        js = '{"name":"%s","version":"%s","description":"%s",' %(self.name,self.version,self.description)
+        if self.keywords: js += '"keywords": [%s],' %self.keywords
+
+        js += '"maintainers": ['
+        for Maintainer in self.maintainers:
+            js += Maintainer.to_commonjs()
+            js += ','
+        js += '],'
+
+        js += '"contributors": ['
+        for Contributor in self.contributors:
+            js += Contributor.to_commonjs()
+            js += ','
+        js += '],'
+
+        js += '"bugs": {"mail": "%s","web": "%s"},'
+
+        js += '"licenses": ['
+        for License in self.licenses:
+            js += License.to_commonjs()
+            js + ','
+        js += '],'
+
+        js += '"repositories": ['
+        for Repo in self.repositories:
+            js += Repo.to_commonjs()
+            js += ','
+        js += '],'
+
+        js += '"dependencies": {'
+        for Dependency in self.dependencies:
+            js += '"%s":"%s",' %(Dependency.name,Dependency.version)
+        js += '},'
+
+        if self.implements:
+            js += '"implements": [' 
+            for Spec in self.implements:
+                js += '"%s",' %Spec.name
+            js += '],'
+
+        if self.requirements:
+            if self.requirements.os:
+                js += '"os": ['
+                for r in self.requirements.os:
+                    js += '"%s",' %r.name
+                js += '],'
+            if self.requirements.cpu:
+                js += '"cpu": ['
+                for r in self.requirements.cpu:
+                    js += '"%s",' %r.name
+                js += '],'
+            if self.requirements.engines:
+                js += '"engine": ['
+                for r in self.requirements.engines:
+                    js += '"%s",' %r.name
+                js += '],'
+
+        if self.scripts:
+            js += '"scripts": {'
+            for Script in self.Scripts:
+                js += '"%s": "%s",' %(Script.name,Script.path)
+            js += '},' 
+
+        if self.directories:
+            js += '"scripts": {'
+            for Dir in self.Dir:
+                js += '"%s": "%s",' %(Dir.name,Dir.path)
+            js += '},' 
+
+        # This closes the JSON output.
+        js += '}'
+
+        return js
+
+class Version(models.Model):
     """Maintain package info for a specific version."""
-
+    package = models.ForeignKey(Package,related_name="versions")
     number = models.CharField(max_length=16,help_text='A version string conforming to the Semantic Versioning requirements at http://semver.org/')
-    contributors = models.ManyToManyField(Contact,blank=True,related_name="package_contributors")
-    maintainers = models.ManyToManyField(Contact,blank=True,related_name="package_maintainers")
-    repositories = models.ManyToManyField(Repo)
+    contributors = models.ManyToManyField(Contact,blank=True,related_name="contributors")
+    maintainers = models.ManyToManyField(Contact,blank=True,related_name="maintainers")
+    repositories = models.ManyToManyField(Repo,related_name="repos")
     keywords = models.TextField(blank=True,null=True)
     is_builtin = models.BooleanField(help_text="Indicates the package is built in as a standard component of the underlying platform.")
     bug_url = models.URLField(blank=True,null=True,help_text="URL for submitting bugs.")
@@ -198,116 +335,10 @@ class Package_Version(models.Model):
     def __unicode__(self):
         return self.number
 
-class Package(models.Model):
-    """An individual package. This is patterned after the Common JS 
-    definition of packages. See: 
-    
-    http://wiki.commonjs.org/wiki/Packages/1.1
-    """
-
-    title = models.CharField(max_length=128,unique=True,help_text="Official title of the package.")
-    name = models.CharField(max_length=128,unique=True,help_text='This must be a unique, lowercase alpha-numeric name without spaces. It may include "." or "_" or "-" characters.')
-    description = models.TextField(help_text="A brief description of the package.")
-    versions = models.ManyToManyField(Package_Version)
-    author = models.ForeignKey(Contact,related_name="package_author",help_text="Original author of the package.")
-    added_by = models.ForeignKey(User,blank=True,null=True,related_name='package_added_by')
-    added_date = models.DateField(auto_now_add=True)
-    modified_date = models.DateField(auto_now=True)
-    modified_by = models.ForeignKey(User,blank=True,null=True,related_name='package_modified_by')
-    versions = models.ManyToManyField(Package_Version)
-
-    def __unicode__(self):
-        return self.name
-
-    def is_local(self):
-        """Determine whether the package is local to this registry."""
-        if os.path.exists('%s/data/packages/%s' %(SETTINGS.THIS_PATH,self.name)):
-            return True
-        return False
-
-    def to_commonjs(self):
-        """Convert the data to canonical Common JS JSON worthy of a package.json 
-        file. This is if we want to create a "true" package server that 
-        supports Common JS.
-        """
-        js = '{"name":"%s","version":"%s","description":"%s",' %(self.name,self.version,self.description)
-        if self.keywords: js += '"keywords": [%s],' %self.keywords
-
-        js += '"maintainers": ['
-        for Maintainer in self.maintainers:
-            js += Maintainer.to_commonjs()
-            js += ','
-        js += '],'
-
-        js += '"contributors": ['
-        for Contributor in self.contributors:
-            js += Contributor.to_commonjs()
-            js += ','
-        js += '],'
-
-        js += '"bugs": {"mail": "%s","web": "%s"},'
-
-        js += '"licenses": ['
-        for License in self.licenses:
-            js += License.to_commonjs()
-            js + ','
-        js += '],'
-
-        js += '"repositories": ['
-        for Repo in self.repositories:
-            js += Repo.to_commonjs()
-            js += ','
-        js += '],'
-
-        js += '"dependencies": {'
-        for Dependency in self.dependencies:
-            js += '"%s":"%s",' %(Dependency.name,Dependency.version)
-        js += '},'
-
-        if self.implements:
-            js += '"implements": [' 
-            for Spec in self.implements:
-                js += '"%s",' %Spec.name
-            js += '],'
-
-        if self.requirements:
-            if self.requirements.os:
-                js += '"os": ['
-                for r in self.requirements.os:
-                    js += '"%s",' %r.name
-                js += '],'
-            if self.requirements.cpu:
-                js += '"cpu": ['
-                for r in self.requirements.cpu:
-                    js += '"%s",' %r.name
-                js += '],'
-            if self.requirements.engines:
-                js += '"engine": ['
-                for r in self.requirements.engines:
-                    js += '"%s",' %r.name
-                js += '],'
-
-        if self.scripts:
-            js += '"scripts": {'
-            for Script in self.Scripts:
-                js += '"%s": "%s",' %(Script.name,Script.path)
-            js += '},' 
-
-        if self.directories:
-            js += '"scripts": {'
-            for Dir in self.Dir:
-                js += '"%s": "%s",' %(Dir.name,Dir.path)
-            js += '},' 
-
-        # This closes the JSON output.
-        js += '}'
-
-        return js
-
-class Package_Ranking(models.Model):
+class Ranking(models.Model):
     """Initial stab at maintaining package ranking data."""
-    package = models.ForeignKey(Package)
-    version = models.ForeignKey(Package_Version)
+    package = models.ForeignKey(Package,related_name='rankings')
+    version = models.ForeignKey(Version)
     email = models.EmailField(help_text="Email address of the person ranking the package.")
     added_date = models.DateField(auto_now_add=True)
     code_quality = models.IntegerField(choices=PACKAGE_RANKING_CHOICES,help_text="Does it follow the style guide. What style guide?")

@@ -19,9 +19,11 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
 
+    # This needs to come before the dynamic package URLs or it will be considered a package.
+    (r'^testing/$','packageserver.views.testing'),
+
     (r'^$','packageserver.views.index'),
     (r'^(?P<package_name>[\w\-]+)/$','packageserver.views.package'),
     (r'^(?P<package_name>[\w\-]+)/(?P<package_version>[\d\.]+)/$','packageserver.views.package'),
 
-    (r'^testing/','packageserver.views.testing'),
 )

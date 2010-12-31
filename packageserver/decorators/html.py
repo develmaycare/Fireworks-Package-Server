@@ -81,3 +81,18 @@ def package(f):
         return HttpResponse(T.render(C),mimetype="text/html")
 
     return wrapper
+
+def testing(f):
+    """Display the testing/sandbox HTML page."""
+
+    def wrapper(request, *args, **kwargs):
+        if not is_html_request(request.META['HTTP_ACCEPT']):
+            return f(request, *args, **kwargs)
+
+        T = loader.get_template('testing.html')
+        C = Context({
+            'request': request,
+            'output': 'This is a test.'
+        })
+        return HttpResponse(T.render(C),mimetype="text/html")
+    return wrapper
