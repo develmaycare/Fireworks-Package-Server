@@ -1,6 +1,6 @@
-# Django settings for fwp project.
+# Django settings for fwp-package-server project.
 
-THIS_PATH = '/opt/src/fwp/application'
+THIS_PATH = "/opt/src/fwp-package-server"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -11,13 +11,17 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-# Or path to database file if using sqlite3.
-DATABASE_NAME = '%s/data/server.db' %THIS_PATH
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '%s/data/server.db' %THIS_PATH,                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -51,7 +55,7 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '378-kbs^jkr8z_qhvqubrqe^@zzb^$#8p&pectvkl**2r=hx4('
+SECRET_KEY = '0qkjepg!rs378s6bl1!f1&bcprd&)jac1j-*%30e0_qz-#ns$a'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -68,10 +72,17 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'application.urls'
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
+    'application.context_processors.config',
+)
+
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    '%s/application/templates' %THIS_PATH,
 )
 
 INSTALLED_APPS = (
@@ -80,5 +91,47 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'application.packageserver',
+    'application.repos',
+    'application.packages',
 )
+
+COPYRIGHT_OWNER = 'F.S. Davis'
+
+"""
+I have never liked the default static_media directory for lumping everything  
+-- including user content -- into a single directory. I always create the following 
+directories relative to the Django project, and these may be used to serve 
+files (see below).
+"""
+ASSETS_PATH = "%s/assets" %THIS_PATH
+CONTENT_PATH = "%s/content" %THIS_PATH
+SCRIPTS_PATH = "%s/scripts" %THIS_PATH
+
+"""
+In debug mode, it is assumed that you have defined URL patterns using 
+django.views.static.serve -- an example is:
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'^assets/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.ASSETS_PATH}),
+    )
+
+When in production, you may still use an Apache alias to refer to "/assets", or 
+you may wish to host the files from another domain to improve load times.
+
+In both cases, it is best to code your templates to use {{ASSETS_URL}} instead 
+of the actual URL so as to make switching between development and production 
+really easy. This does, however, require a context processor and the use of 
+RequestContext (or better, use of direct_to_template).
+"""
+if DEBUG:
+    ASSETS_URL = "/assets"
+    CONTENT_URL = "/content"
+    SCRIPTS_URL = "/scripts"
+else:
+    ASSETS_URL = "http://assets.example.com"
+    CONTENT_URL = "http://content.example.com"
+    SCRIPTS_URL = "http://scripts.example.com"
+
+
+

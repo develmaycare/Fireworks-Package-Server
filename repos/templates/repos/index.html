@@ -1,0 +1,27 @@
+<h1>Package Listing</h1>
+<table width="100%">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Version(s)</th>
+            <th>Maintainer(s)</th>
+            <th>Contributor(s)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for Package in packages %}
+        <tr class="{% cycle 'odd' 'even' %}">
+            <td><a href="/{{Package.name}}">{{Package.title}}</a></td>
+            <td>{{Package.name}}</td>
+            <td>{{Package.description}}</td>
+            <td>
+            {{Package.get_version_numbers_as_links|safeseq|join:", "}}
+            </td>
+            <td>{{Package.maintainers.all|join:", "}}</td>
+            <td>{{Package.contributors.all|join:", "}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -15,14 +15,15 @@ simple text field. Breaking these out into separate, normalized models was too
 much.
 """
 
-# Imports #
+# Python Imports
 import os
 
+# Django Imports
 from django.conf import settings as SETTINGS
 from django.contrib.admin.models import User
 from django.db import models
 
-# Choices #
+# Choices
 
 REPO_TYPES = (
     ('cvs','CVS'),
@@ -39,7 +40,7 @@ PACKAGE_RANKING_CHOICES = (
     (0,'Very Bad'),
 )
 
-# Models #
+# Models
 
 class Category(models.Model):
     """Categorization for packages."""

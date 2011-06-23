@@ -1,0 +1,41 @@
+<h1><a href="/">Package Registry</a></h1>
+
+<h2>
+    {{Package.title}}
+    {% if display_specific_package %}
+    {{package_version}}
+    {% endif %}
+</h2>
+
+<p>
+{{Package.description}}
+</p>
+<table width="100%">
+    <tbody>
+        <tr>
+            <th>Official Title:</th>
+            <td>{{Package.title}}</td>
+        </tr>
+        <tr>
+            <th>Name:</th>
+            <td>{{Package.name}}</td>
+        </tr>
+        <tr>
+            <th>Description:</th>
+            <td>{{Package.description}}</td>
+        </tr>
+        <tr>
+            <th>Version(s):</th>
+            <td>{{Package.version}}</td>
+        </tr>
+        <tr>
+            <th>Maintainer(s):</th>
+            <td>{{Package.maintainers.all|join:", "}}</td>
+        </tr>
+        <tr>
+            <th>Contributors(s):</th>
+            <td>{{Package.contributors.all|join:", "}}</td>
+        </tr>
+
+    </tbody>
+</table>
