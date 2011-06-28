@@ -37,7 +37,10 @@ def index(f):
         if not is_html_request(request.META['HTTP_ACCEPT']):
             return f(request, *args, **kwargs)
 
-        # QUESTION: How should packages be sorted?
+        
+        # TODO: Implement paging for package display.
+
+        # QUESTION: How should packages be sorted by default?
         tokens = dict()
         tokens['packages'] = Package.objects.all()
         print "here"
@@ -66,9 +69,9 @@ def package(f):
         tokens['Package'] = Pkg
         tokens['display_specific_page'] = False
 
-        if 'package_version' in kwargs:
+        if 'version_number' in kwargs:
             tokens['display_specific_package'] = True
-            tokens['package_version'] = kwargs['package_version']
+            tokens['version_number'] = kwargs['version_number']
 
         return direct_to_template(request, 'packages/package.html', tokens)
 

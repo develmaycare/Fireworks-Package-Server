@@ -4,5 +4,6 @@
 .backup
 data
 fixtures
+localsettings.py
 session.vim
 scraps.py

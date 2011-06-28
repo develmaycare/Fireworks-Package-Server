@@ -78,9 +78,9 @@ def package(f):
         tokens['Package'] = Pkg
         tokens['display_specific_package'] = False
 
-        if 'package_version' in kwargs:
+        if 'version_number' in kwargs:
             tokens['display_specific_package'] = True
-            tokens['package_version'] = kwargs['package_version']
+            tokens['version_number'] = kwargs['version_number']
 
         return render_to_response("packages/package.json", tokens, mimetype="application/json")
 

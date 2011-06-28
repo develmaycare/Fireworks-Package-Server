@@ -1,9 +1,12 @@
+{% extends "default.html" %}
+
+{% block main %}
 <h1>Package Listing</h1>
 <table width="100%">
     <thead>
         <tr>
             <th>Title</th>
-            <th>Name</th>
+            <th>Author</th>
             <th>Description</th>
             <th>Version(s)</th>
             <th>Maintainer(s)</th>
@@ -14,14 +17,17 @@
         {% for Package in packages %}
         <tr class="{% cycle 'odd' 'even' %}">
             <td><a href="{{Package.get_absolute_url}}">{{Package.title}}</a></td>
-            <td>{{Package.name}}</td>
+            <td>{{Package.author}}</td>
             <td>{{Package.description}}</td>
             <td>
-            {{Package.get_version_numbers_as_links|safeseq|join:", "}}
+                {% for Version in Package.versions.all %}
+                <a href="{{Version.get_absolute_url}}" title="more info on {{Package.title}} version {{Version.number}}">{{Version.number}}</a>
+                {% endfor %}
             </td>
-            <td>{{Package.maintainers.all|join:", "}}</td>
-            <td>{{Package.contributors.all|join:", "}}</td>
+            <td>{{Package.current_maintainers|join:", "}}</td>
+            <td>{{Package.current_contributors|join:", "}}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% endblock %}

@@ -1,5 +1,6 @@
 # Django Imports
 
+from django.contrib.auth.models import User
 from django.contrib import admin
 
 # Local Imports
@@ -15,7 +16,9 @@ class RepoAdmin(admin.ModelAdmin):
 
     def save_model(self,request,obj,form,change):
         """Automatically add the added_by to the data."""
-        if getattr(obj,'added_by',None) is None:
+        try:
+            getattr(obj, 'added_by', None)
+        except User.DoesNotExist:
             obj.added_by = request.user
         obj.modified_by = request.user
         obj.save()

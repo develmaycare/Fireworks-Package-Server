@@ -1,9 +1,11 @@
+{% extends "default.html" %}
+{% block main %}
 <h1><a href="/">Package Registry</a></h1>
 
 <h2>
     {{Package.title}}
     {% if display_specific_package %}
-    {{package_version}}
+    {{version_number}}
     {% endif %}
 </h2>
 
@@ -39,3 +41,4 @@
 
     </tbody>
 </table>
+{% endblock %}

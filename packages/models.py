@@ -100,6 +100,16 @@ class Package(ATrackingData):
     def __unicode__(self):
         return self.title
 
+    def current_contributors(self):
+        """Return a queryset of the current contributors."""
+        Latest = self.versions.latest('added_date')
+        return Latest.contributors.all()
+
+    def current_maintainers(self):
+        """Return a queryset of the current maintainers."""
+        Latest = self.versions.latest('added_date')
+        return Latest.maintainers.all()
+
     def get_absolute_url(self):
         # TODO: Implement permalink decorator.
         return "/packages/%s" %self.name
@@ -116,7 +126,7 @@ class Package(ATrackingData):
         """Get a list of version numbers as hyperlinks."""
         links = list()
         for i in self.get_version_numbers():
-            links.append('<a href="%s/%s">%s</a>' %(self.name,i,i))
+            links.append('<a href="%s/%s">%s</a>' %(self.get_absolute_url(),i,i))
         return links
     get_version_numbers_as_links.allow_tags = True
 
@@ -166,6 +176,9 @@ class Version(ATrackingData):
 
     def __unicode__(self):
         return self.number
+
+    def get_absolute_url(self):
+        return "%s/%s" %(self.package.get_absolute_url(),self.number)
 
     def to_dict(self):
         """Return a dictionary representation of the version."""
